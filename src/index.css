@@ -1,0 +1,63 @@
+@import "tailwindcss";
+
+:root {
+  --bg-space: #070617;
+  --gold-primary: #f6d186;
+  --gold-glow: rgba(246, 209, 134, 0.45);
+  --cyan-bead: #2ee6d6;
+  --cyan-glow: rgba(46, 230, 214, 0.55);
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.16);
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  background-color: #030209;
+  color: #ffffff;
+}
+
+.font-arabic {
+  font-family: 'Amiri', serif;
+}
+
+@keyframes pulseRings {
+  0% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.65; }
+  50% { transform: translate(-50%, -50%) scale(1.12); opacity: 0.2; }
+  100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.65; }
+}
+
+.animate-pulse-halo {
+  animation: pulseRings 3.2s infinite ease-in-out;
+}
+
+@keyframes floatNumber {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  25% { opacity: 1; transform: translate(-40%, -18px) scale(1.2); }
+  100% { opacity: 0; transform: translate(-20%, -46px) scale(0.85); }
+}
+
+.animate-float-up {
+  animation: floatNumber 0.75s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Custom scrollbars for menus */
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.03);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(246, 209, 134, 0.25);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(246, 209, 134, 0.45);
+}

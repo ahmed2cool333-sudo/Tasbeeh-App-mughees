@@ -1,0 +1,8 @@
+{
+  "name": "Islamic Digital Tasbih & Dhikr",
+  "description": "An interactive Islamic digital tasbih and dhikr counter with sliding prayer beads, male Arabic audio recitation, celestial starscape, and customizable targets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

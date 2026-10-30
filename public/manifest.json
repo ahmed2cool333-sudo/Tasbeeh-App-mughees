@@ -1,0 +1,23 @@
+{
+  "name": "Islamic Digital Tasbih & Dhikr",
+  "short_name": "Tasbih",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070617",
+  "theme_color": "#070617",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23070617'/><path d='M65,48 A45,45 0 1,0 135,124 A52,52 0 1,1 65,48 Z' fill='%23f6d186'/><circle cx='132' cy='62' r='8' fill='%232ee6d6'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='110' fill='%23070617'/><path d='M175,130 A120,120 0 1,0 360,330 A140,140 0 1,1 175,130 Z' fill='%23f6d186'/><circle cx='355' cy='165' r='22' fill='%232ee6d6'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

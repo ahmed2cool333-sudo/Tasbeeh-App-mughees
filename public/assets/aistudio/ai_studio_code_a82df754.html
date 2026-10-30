@@ -1,0 +1,1287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Islamic Digital Tasbih & Dhikr</title>
+  
+  <!-- PWA & Mobile Web Capabilities -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#070617" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Tasbih" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23070617'/><path d='M35,25 A22,22 0 1,0 68,62 A26,26 0 1,1 35,25 Z' fill='%23f6d186'/><circle cx='68' cy='32' r='4' fill='%232ee6d6'/></svg>" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23070617'/><path d='M35,25 A22,22 0 1,0 68,62 A26,26 0 1,1 35,25 Z' fill='%23f6d186'/><circle cx='68' cy='32' r='4' fill='%232ee6d6'/></svg>" />
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-space: #070617;
+      --gold-primary: #f6d186;
+      --gold-glow: rgba(246, 209, 134, 0.45);
+      --cyan-bead: #2ee6d6;
+      --cyan-glow: rgba(46, 230, 214, 0.55);
+      --glass-bg: rgba(255, 255, 255, 0.08);
+      --glass-border: rgba(255, 255, 255, 0.16);
+      --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #030209;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #ffffff;
+      min-height: 100vh;
+      min-height: -webkit-fill-available;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .app-viewport {
+      position: relative;
+      width: 100%;
+      max-width: 440px;
+      height: 100vh;
+      height: 100dvh;
+      max-height: 920px;
+      background: radial-gradient(circle at 50% 20%, #20134a 0%, #0d0a26 50%, #050311 100%);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.85);
+    }
+
+    @media (min-width: 480px) {
+      .app-viewport {
+        border-radius: 40px;
+        height: 94vh;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    #sky-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .crescent-moon {
+      position: absolute;
+      top: 48px;
+      left: 38px;
+      width: 58px;
+      height: 58px;
+      border-radius: 50%;
+      box-shadow: -10px 8px 0 2px #f2f7ff;
+      filter: drop-shadow(0 0 16px rgba(230, 243, 255, 0.85)) drop-shadow(0 0 35px rgba(162, 206, 255, 0.45));
+      transform: rotate(-15deg);
+      z-index: 2;
+    }
+
+    .top-bar {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 24px 10px;
+      padding-top: max(24px, env(safe-area-inset-top));
+    }
+
+    .pill-btn {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      color: #ecd9b5;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 8px 14px;
+      border-radius: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.25s ease;
+      box-shadow: var(--glass-shadow);
+    }
+    .pill-btn:active {
+      transform: scale(0.95);
+      background: rgba(255, 255, 255, 0.16);
+    }
+
+    .dhikr-display {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 0 20px;
+      margin-top: -6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .arabic-calligraphy {
+      font-family: 'Amiri', serif;
+      font-size: 48px;
+      line-height: 1.25;
+      color: #fff9ea;
+      text-shadow: 0 0 24px rgba(255, 228, 160, 0.7), 0 0 50px rgba(230, 185, 90, 0.35);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+      direction: rtl;
+    }
+
+    .diamond-divider {
+      display: inline-block;
+      width: 7px;
+      height: 7px;
+      background: #f6d186;
+      transform: rotate(45deg);
+      box-shadow: 0 0 10px #f6d186;
+      margin: 8px 0;
+    }
+
+    .transliteration {
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: #ffffff;
+      margin-bottom: 2px;
+    }
+
+    .translation {
+      font-size: 13px;
+      font-weight: 300;
+      color: #b5bbd6;
+    }
+
+    .mid-controls {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .glass-circle {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      color: #f6d186;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: all 0.2s ease;
+    }
+    .glass-circle:active {
+      transform: scale(0.92);
+    }
+    .glass-circle.muted {
+      color: #72768e;
+      border-color: rgba(255, 255, 255, 0.08);
+    }
+
+    .play-btn-large {
+      width: 62px;
+      height: 62px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.28), rgba(20, 16, 45, 0.75));
+      border: 1px solid rgba(255, 235, 180, 0.35);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.5), 0 0 20px rgba(246, 209, 134, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .play-btn-large:active {
+      transform: scale(0.93);
+    }
+    .play-btn-large svg {
+      fill: #f6d186;
+      filter: drop-shadow(0 0 6px rgba(246, 209, 134, 0.6));
+    }
+
+    .tasbih-strand-wrapper {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 125px;
+      margin-top: -6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    #bead-svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .tap-target-halo {
+      position: absolute;
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -46%);
+      border: 1.8px dashed rgba(246, 209, 134, 0.45);
+      animation: pulseRings 3.5s infinite linear;
+      pointer-events: none;
+    }
+
+    @keyframes pulseRings {
+      0% { transform: translate(-50%, -46%) scale(0.95); opacity: 0.55; }
+      50% { transform: translate(-50%, -46%) scale(1.08); opacity: 0.2; }
+      100% { transform: translate(-50%, -46%) scale(0.95); opacity: 0.55; }
+    }
+
+    .float-bubble {
+      position: absolute;
+      color: #f6d186;
+      font-weight: 700;
+      font-size: 18px;
+      pointer-events: none;
+      animation: floatUp 0.75s ease-out forwards;
+      text-shadow: 0 0 10px rgba(246, 209, 134, 0.85);
+      z-index: 25;
+    }
+
+    @keyframes floatUp {
+      0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+      30% { opacity: 1; transform: translate(-30%, -16px) scale(1.2); }
+      100% { opacity: 0; transform: translate(-10%, -40px) scale(0.9); }
+    }
+
+    .counter-section {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .counter-container {
+      position: relative;
+      width: 108px;
+      height: 108px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .counter-svg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .counter-bg-circle {
+      fill: rgba(14, 11, 33, 0.65);
+      stroke: rgba(255, 255, 255, 0.08);
+      stroke-width: 5;
+    }
+
+    .counter-progress-bar {
+      fill: none;
+      stroke: url(#goldGradient);
+      stroke-width: 5.5;
+      stroke-linecap: round;
+      stroke-dasharray: 301.6;
+      stroke-dashoffset: 301.6;
+      transition: stroke-dashoffset 0.35s ease;
+      filter: drop-shadow(0 0 8px rgba(246, 209, 134, 0.6));
+    }
+
+    .counter-text-group {
+      text-align: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .count-main {
+      font-size: 34px;
+      font-weight: 700;
+      color: #fff8e8;
+      line-height: 1;
+      text-shadow: 0 0 14px rgba(255, 255, 255, 0.4);
+    }
+
+    .count-target {
+      font-size: 13px;
+      font-weight: 500;
+      color: #8c90ad;
+      margin-top: 3px;
+    }
+
+    .landscape-backdrop {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 38%;
+      pointer-events: none;
+      z-index: 4;
+      overflow: hidden;
+    }
+
+    .oasis-svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      bottom: 0;
+      left: 0;
+    }
+
+    .modal-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(5, 3, 15, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 100;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      opacity: 1;
+    }
+
+    .modal-card {
+      background: linear-gradient(145deg, rgba(28, 20, 60, 0.95), rgba(12, 9, 32, 0.98));
+      border: 1px solid rgba(246, 209, 134, 0.25);
+      border-radius: 28px;
+      padding: 24px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: #f6d186;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    .dhikr-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .dhikr-opt-item {
+      padding: 12px 16px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.09);
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    .dhikr-opt-item:hover, .dhikr-opt-item.selected {
+      background: rgba(246, 209, 134, 0.12);
+      border-color: rgba(246, 209, 134, 0.4);
+    }
+
+    .dhikr-opt-item .ar {
+      font-family: 'Amiri', serif;
+      font-size: 20px;
+      color: #f6d186;
+    }
+
+    .speed-pills {
+      display: flex;
+      gap: 10px;
+      margin: 16px 0;
+      justify-content: center;
+    }
+
+    .speed-btn {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: #b5bbd6;
+      font-size: 13px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .speed-btn.active {
+      background: #f6d186;
+      color: #120e2b;
+      font-weight: 700;
+      border-color: #f6d186;
+    }
+
+    .close-btn {
+      width: 100%;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 16px;
+      background: linear-gradient(90deg, #d4a753, #f6d186);
+      border: none;
+      color: #0b071e;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .completion-dialog {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .completion-icon {
+      font-size: 46px;
+      filter: drop-shadow(0 0 15px gold);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-viewport">
+    <canvas id="sky-canvas"></canvas>
+    <div class="crescent-moon"></div>
+
+    <header class="top-bar">
+      <button class="pill-btn" id="dhikrMenuBtn" aria-label="Select Dhikr">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+        <span>Dhikr</span>
+      </button>
+
+      <button class="pill-btn" id="resetBtn" aria-label="Reset counter">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        <span>Reset</span>
+      </button>
+    </header>
+
+    <main class="dhikr-display">
+      <div class="arabic-calligraphy" id="arabicText">الْحَمْدُ لِلّٰهِ</div>
+      <div class="diamond-divider"></div>
+      <h1 class="transliteration" id="transliterationText">Alhamdulillah</h1>
+      <p class="translation" id="translationText">All praise is due to Allah</p>
+    </main>
+
+    <section class="mid-controls">
+      <button class="glass-circle" id="soundToggleBtn" title="Toggle Sound" aria-label="Sound Toggle">
+        <svg id="soundOnIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+        <svg id="soundOffIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="display:none;"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>
+      </button>
+
+      <button class="play-btn-large" id="playPauseBtn" title="Start Auto Dhikr" aria-label="Auto Dhikr">
+        <svg id="playIcon" width="22" height="22" viewBox="0 0 24 24"><polygon points="7 4 20 12 7 20 7 4"/></svg>
+        <svg id="pauseIcon" width="22" height="22" viewBox="0 0 24 24" style="display:none;"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+      </button>
+    </section>
+
+    <!-- Tasbih Sliding Beads Wire -->
+    <div class="tasbih-strand-wrapper" id="tasbihTouchZone" title="Tap anywhere to count">
+      <div class="tap-target-halo"></div>
+      <svg id="bead-svg" viewBox="0 0 440 125">
+        <defs>
+          <radialGradient id="activeBeadGlow" cx="40%" cy="35%" r="65%">
+            <stop offset="0%" stop-color="#d4fffb"/>
+            <stop offset="35%" stop-color="#2ee6d6"/>
+            <stop offset="75%" stop-color="#0e9486"/>
+            <stop offset="100%" stop-color="#043833"/>
+          </radialGradient>
+          
+          <radialGradient id="turquoiseBead" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#b8fff7"/>
+            <stop offset="40%" stop-color="#19ccbb"/>
+            <stop offset="85%" stop-color="#0a7065"/>
+            <stop offset="100%" stop-color="#022a26"/>
+          </radialGradient>
+
+          <radialGradient id="amberBead" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#fff4b8"/>
+            <stop offset="35%" stop-color="#f59e0b"/>
+            <stop offset="80%" stop-color="#b45309"/>
+            <stop offset="100%" stop-color="#451a03"/>
+          </radialGradient>
+
+          <radialGradient id="blueGlassBead" cx="35%" cy="30%" r="70%">
+            <stop offset="0%" stop-color="#cde0ff"/>
+            <stop offset="35%" stop-color="#4a86ff"/>
+            <stop offset="75%" stop-color="#1b41ab"/>
+            <stop offset="100%" stop-color="#0b1747"/>
+          </radialGradient>
+
+          <filter id="superGlow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="5.5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <filter id="goldGlowFilter" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="3.5" result="glow"/>
+            <feMerge>
+              <feMergeNode in="glow"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <path id="beadTrack" d="M -50,30 Q 220,118 490,30" fill="none" stroke="rgba(246,209,134,0.32)" stroke-width="2" stroke-dasharray="2,3"/>
+
+        <g id="beadsContainer"></g>
+
+        <g id="centerFocalHalo" pointer-events="none">
+          <circle cx="220" cy="74" r="23" fill="none" stroke="#f6d186" stroke-width="2" filter="url(#goldGlowFilter)" opacity="0.85"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Circular Progress Counter -->
+    <div class="counter-section">
+      <div class="counter-container">
+        <svg class="counter-svg" viewBox="0 0 110 110">
+          <defs>
+            <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#fcedb4"/>
+              <stop offset="50%" stop-color="#f6d186"/>
+              <stop offset="100%" stop-color="#bd8933"/>
+            </linearGradient>
+          </defs>
+          <circle class="counter-bg-circle" cx="55" cy="55" r="48" />
+          <circle class="counter-progress-bar" id="progressBar" cx="55" cy="55" r="48" />
+        </svg>
+        <div class="counter-text-group">
+          <div class="count-main" id="countDisplay">0</div>
+          <div class="count-target">/ 33</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Landscape Backdrop -->
+    <div class="landscape-backdrop">
+      <svg class="oasis-svg" viewBox="0 0 440 280" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="waterGrad" x1="50%" y1="0%" x2="50%" y2="100%">
+            <stop offset="0%" stop-color="#19375e"/>
+            <stop offset="40%" stop-color="#0f2647"/>
+            <stop offset="100%" stop-color="#061226"/>
+          </linearGradient>
+          <linearGradient id="duneFar" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#181335"/>
+            <stop offset="100%" stop-color="#0c091f"/>
+          </linearGradient>
+          <linearGradient id="duneNear" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#120d29"/>
+            <stop offset="100%" stop-color="#060410"/>
+          </linearGradient>
+        </defs>
+
+        <path d="M -20,110 Q 70,55 160,95 T 320,80 T 460,110 L 460,280 L -20,280 Z" fill="url(#duneFar)" opacity="0.6"/>
+        <path d="M -20,135 Q 110,95 240,140 T 460,125 L 460,280 L -20,280 Z" fill="url(#duneFar)"/>
+
+        <ellipse cx="230" cy="225" rx="145" ry="38" fill="url(#waterGrad)" />
+        <ellipse cx="230" cy="225" rx="110" ry="24" fill="#204d80" opacity="0.35" filter="blur(6px)"/>
+        
+        <path d="M 140,220 C 180,217 280,217 320,220" stroke="rgba(246, 209, 134, 0.35)" stroke-width="1.2" fill="none" opacity="0.8"/>
+        <path d="M 170,230 C 200,228 260,228 290,230" stroke="rgba(246, 209, 134, 0.25)" stroke-width="1" fill="none"/>
+        
+        <path d="M -20,185 Q 130,170 200,205 T 460,180 L 460,280 L -20,280 Z" fill="url(#duneNear)"/>
+
+        <g fill="#070512">
+          <path d="M 30,280 Q 32,210 24,185 Q 26,210 33,280 Z"/>
+          <path d="M 24,185 Q 5,175 -8,185 Q 10,182 24,185 Z"/>
+          <path d="M 24,185 Q 15,160 5,165 Q 18,172 24,185 Z"/>
+          <path d="M 24,185 Q 32,158 45,168 Q 33,172 24,185 Z"/>
+          <path d="M 24,185 Q 40,180 50,195 Q 35,188 24,185 Z"/>
+          
+          <path d="M 320,280 Q 323,195 310,165 Q 315,195 324,280 Z"/>
+          <path d="M 310,165 Q 280,150 260,165 Q 285,160 310,165 Z"/>
+          <path d="M 310,165 Q 295,135 285,142 Q 302,150 310,165 Z"/>
+          <path d="M 310,165 Q 325,130 345,140 Q 328,150 310,165 Z"/>
+          <path d="M 310,165 Q 335,152 355,172 Q 330,165 310,165 Z"/>
+
+          <path d="M 390,280 Q 394,215 390,190 Q 392,215 394,280 Z"/>
+          <path d="M 390,190 Q 365,180 350,190 Q 370,185 390,190 Z"/>
+          <path d="M 390,190 Q 380,165 372,170 Q 385,178 390,190 Z"/>
+          <path d="M 390,190 Q 405,165 420,175 Q 405,182 390,190 Z"/>
+          <path d="M 390,190 Q 412,185 425,200 Q 405,193 390,190 Z"/>
+        </g>
+      </svg>
+    </div>
+
+    <!-- Dhikr Modal -->
+    <div class="modal-overlay" id="dhikrModal">
+      <div class="modal-card">
+        <h2 class="modal-title">Select Dhikr</h2>
+        <div class="dhikr-options" id="dhikrListContainer"></div>
+
+        <div style="margin-top: 18px;">
+          <label style="font-size: 13px; color: #b5bbd6; display: block; text-align: center;">Auto-Speed (seconds)</label>
+          <div class="speed-pills">
+            <button class="speed-btn" data-speed="1500">1.5s</button>
+            <button class="speed-btn active" data-speed="2000">2s</button>
+            <button class="speed-btn" data-speed="3000">3s</button>
+          </div>
+        </div>
+
+        <button class="close-btn" id="closeDhikrModal">Done</button>
+      </div>
+    </div>
+
+    <!-- Cycle Completion Modal -->
+    <div class="modal-overlay" id="completionModal">
+      <div class="modal-card completion-dialog">
+        <div class="completion-icon">✨</div>
+        <h2 class="modal-title" style="margin-bottom: 4px;">Alhamdulillah!</h2>
+        <p style="font-size: 14px; color: #cbd1e6; line-height: 1.5;">You have completed 33 counts. May Allah accept your dhikr and bestow peace upon your heart.</p>
+        <button class="close-btn" id="restartCycleBtn" style="margin-top: 10px;">Start New Cycle</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Register PWA Service Worker
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    const DHIKR_ITEMS = [
+      {
+        id: 'alhamdulillah',
+        arabic: 'الْحَمْدُ لِلّٰهِ',
+        speechArabic: 'اَلْحَمْدُ لِلَّٰهِ',
+        transliteration: 'Alhamdulillah',
+        translation: 'All praise is due to Allah'
+      },
+      {
+        id: 'subhanallah',
+        arabic: 'سُبْحَانَ اللّٰهِ',
+        speechArabic: 'سُبْحَانَ اللَّٰهِ',
+        transliteration: 'SubhanAllah',
+        translation: 'Glory be to Allah'
+      },
+      {
+        id: 'allahuakbar',
+        arabic: 'اللّٰهُ أَكْبَرُ',
+        speechArabic: 'اَللَّٰهُ أَكْبَرُ',
+        transliteration: 'Allahu Akbar',
+        translation: 'Allah is the Greatest'
+      },
+      {
+        id: 'astaghfirullah',
+        arabic: 'أَسْتَغْفِرُ اللّٰهَ',
+        speechArabic: 'أَسْتَغْفِرُ اللَّٰهَ',
+        transliteration: 'Astaghfirullah',
+        translation: 'I seek forgiveness from Allah'
+      }
+    ];
+
+    const TOTAL_TARGET = 33;
+    const CIRCLE_CIRCUMFERENCE = 2 * Math.PI * 48;
+
+    let state = {
+      dhikrIndex: 0,
+      count: 0,
+      isAutoPlaying: false,
+      audioEnabled: true,
+      autoSpeed: 2000
+    };
+
+    try {
+      const saved = localStorage.getItem('tasbih_state_live');
+      if (saved) {
+        const p = JSON.parse(saved);
+        state.dhikrIndex = p.dhikrIndex || 0;
+        state.count = p.count || 0;
+        state.audioEnabled = p.audioEnabled !== undefined ? p.audioEnabled : true;
+        state.autoSpeed = p.autoSpeed || 2000;
+      }
+    } catch(e) {}
+
+    function saveState() {
+      try {
+        localStorage.setItem('tasbih_state_live', JSON.stringify({
+          dhikrIndex: state.dhikrIndex,
+          count: state.count,
+          audioEnabled: state.audioEnabled,
+          autoSpeed: state.autoSpeed
+        }));
+      } catch(e) {}
+    }
+
+    let audioCtx = null;
+    let selectedMaleVoice = null;
+
+    function selectBestMaleVoice() {
+      if (!('speechSynthesis' in window)) return;
+      const voices = window.speechSynthesis.getVoices();
+      if (!voices || voices.length === 0) return;
+
+      const maleVoiceNames = ['maged', 'tarik', 'tariq', 'naif', 'majed', 'hamed', 'youssef', 'male', 'david', 'george'];
+
+      selectedMaleVoice = voices.find(v => {
+        const lang = (v.lang || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        const isArabic = lang.startsWith('ar');
+        const isMale = maleVoiceNames.some(m => name.includes(m)) || (!name.includes('female') && !name.includes('laila') && !name.includes('mariam') && !name.includes('salma') && !name.includes('zeina') && !name.includes('zariyah'));
+        return isArabic && isMale;
+      });
+
+      if (!selectedMaleVoice) {
+        selectedMaleVoice = voices.find(v => (v.lang || '').toLowerCase().startsWith('ar'));
+      }
+
+      if (!selectedMaleVoice) {
+        selectedMaleVoice = voices.find(v => {
+          const name = (v.name || '').toLowerCase();
+          return maleVoiceNames.some(m => name.includes(m));
+        });
+      }
+    }
+
+    if ('speechSynthesis' in window) {
+      selectBestMaleVoice();
+      window.speechSynthesis.onvoiceschanged = selectBestMaleVoice;
+    }
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function speakMaleDhikr() {
+      if (!state.audioEnabled) return;
+      if (!('speechSynthesis' in window)) return;
+
+      try {
+        window.speechSynthesis.cancel();
+        const current = DHIKR_ITEMS[state.dhikrIndex];
+        const utterance = new SpeechSynthesisUtterance();
+
+        if (!selectedMaleVoice) selectBestMaleVoice();
+
+        if (selectedMaleVoice) {
+          utterance.voice = selectedMaleVoice;
+          utterance.lang = selectedMaleVoice.lang || 'ar-SA';
+          utterance.text = current.speechArabic || current.arabic;
+        } else {
+          utterance.lang = 'ar-SA';
+          utterance.text = current.speechArabic || current.arabic;
+        }
+
+        utterance.rate = 0.78;
+        utterance.pitch = 0.82;
+        utterance.volume = 1.0;
+
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {}
+    }
+
+    function playBackgroundChime() {
+      if (!state.audioEnabled) return;
+      try {
+        initAudio();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(432, now);
+        osc.frequency.exponentialRampToValueAtTime(420, now + 0.4);
+
+        gainNode.gain.setValueAtTime(0.001, now);
+        gainNode.gain.linearRampToValueAtTime(0.08, now + 0.02);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.52);
+      } catch (err) {}
+    }
+
+    function playCompletionSound() {
+      if (!state.audioEnabled) return;
+      try {
+        initAudio();
+        const notes = [432, 540, 648, 864];
+        notes.forEach((freq, idx) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          const t = audioCtx.currentTime + idx * 0.14;
+
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, t);
+
+          gain.gain.setValueAtTime(0.0001, t);
+          gain.gain.linearRampToValueAtTime(0.18, t + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 1.3);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start(t);
+          osc.stop(t + 1.4);
+        });
+      } catch (e) {}
+    }
+
+    function triggerHaptic() {
+      if (window.navigator && window.navigator.vibrate) {
+        window.navigator.vibrate(25);
+      }
+    }
+
+    const canvas = document.getElementById('sky-canvas');
+    const ctx = canvas.getContext('2d');
+    let stars = [];
+    let fireflies = [];
+
+    function resizeCanvas() {
+      canvas.width = canvas.parentElement.clientWidth;
+      canvas.height = canvas.parentElement.clientHeight;
+      createCelestialPoints();
+    }
+
+    function createCelestialPoints() {
+      stars = [];
+      const count = Math.floor((canvas.width * canvas.height) / 3200);
+      for (let i = 0; i < count; i++) {
+        stars.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * (canvas.height * 0.72),
+          r: Math.random() * 1.5 + 0.4,
+          alpha: Math.random() * 0.85 + 0.15,
+          twinkleSpeed: Math.random() * 0.02 + 0.005
+        });
+      }
+
+      fireflies = [];
+      for (let i = 0; i < 22; i++) {
+        fireflies.push({
+          x: Math.random() * canvas.width,
+          y: canvas.height * 0.65 + Math.random() * (canvas.height * 0.3),
+          r: Math.random() * 2 + 1,
+          color: Math.random() > 0.4 ? '#f6d186' : '#2ce0ce',
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.35,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+    }
+
+    function drawCelestialScene() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let s of stars) {
+        s.alpha += s.twinkleSpeed;
+        if (s.alpha > 1 || s.alpha < 0.15) s.twinkleSpeed = -s.twinkleSpeed;
+        ctx.beginPath();
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${Math.abs(s.alpha)})`;
+        ctx.shadowColor = '#d9e7ff';
+        ctx.shadowBlur = s.r > 1.2 ? 6 : 0;
+        ctx.fill();
+      }
+
+      for (let f of fireflies) {
+        f.x += f.vx;
+        f.y += f.vy;
+        f.phase += 0.04;
+        if (f.x < 0) f.x = canvas.width;
+        if (f.x > canvas.width) f.x = 0;
+        if (f.y < canvas.height * 0.62) f.y = canvas.height * 0.95;
+        if (f.y > canvas.height) f.y = canvas.height * 0.65;
+
+        const glowAlpha = (Math.sin(f.phase) + 1) / 2 * 0.8 + 0.15;
+        ctx.beginPath();
+        ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        ctx.fillStyle = f.color;
+        ctx.shadowColor = f.color;
+        ctx.shadowBlur = 9;
+        ctx.globalAlpha = glowAlpha;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+
+      requestAnimationFrame(drawCelestialScene);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    const beadTrack = document.getElementById('beadTrack');
+    const beadsContainer = document.getElementById('beadsContainer');
+
+    const BEAD_SPACING = 31;
+    const trackLength = beadTrack.getTotalLength();
+    const trackCenter = trackLength / 2;
+
+    let currentBeadOffset = state.count;
+    let targetBeadOffset = state.count;
+
+    function animateBeadsMotion() {
+      const diff = targetBeadOffset - currentBeadOffset;
+      if (Math.abs(diff) > 0.001) {
+        currentBeadOffset += diff * 0.14;
+        renderMovingBeads();
+      }
+      requestAnimationFrame(animateBeadsMotion);
+    }
+
+    function renderMovingBeads() {
+      beadsContainer.innerHTML = '';
+
+      const minVisibleIndex = Math.floor(currentBeadOffset - (trackCenter / BEAD_SPACING) - 2);
+      const maxVisibleIndex = Math.ceil(currentBeadOffset + (trackCenter / BEAD_SPACING) + 2);
+
+      for (let i = minVisibleIndex; i <= maxVisibleIndex; i++) {
+        const distanceAlongCurve = trackCenter - (i - currentBeadOffset) * BEAD_SPACING;
+
+        if (distanceAlongCurve < -15 || distanceAlongCurve > trackLength + 15) continue;
+
+        const pt = beadTrack.getPointAtLength(Math.max(0, Math.min(trackLength, distanceAlongCurve)));
+        const distFromCenter = Math.abs(distanceAlongCurve - trackCenter);
+
+        const scaleFactor = Math.max(0, 1 - distFromCenter / 150);
+        let radius = 9.5 + scaleFactor * 7.5;
+
+        let opacity = 1;
+        if (distanceAlongCurve < 50) opacity = Math.max(0, distanceAlongCurve / 50);
+        if (distanceAlongCurve > trackLength - 50) opacity = Math.max(0, (trackLength - distanceAlongCurve) / 50);
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('opacity', opacity.toFixed(2));
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', pt.x);
+        circle.setAttribute('cy', pt.y);
+        circle.setAttribute('r', radius);
+
+        const isAmberBead = (Math.abs(i) % 11 === 0 && i !== 0);
+
+        if (distFromCenter < 12) {
+          circle.setAttribute('fill', 'url(#activeBeadGlow)');
+          circle.setAttribute('filter', 'url(#superGlow)');
+        } else if (isAmberBead) {
+          circle.setAttribute('fill', 'url(#amberBead)');
+        } else if (distFromCenter < 52) {
+          circle.setAttribute('fill', 'url(#turquoiseBead)');
+        } else {
+          circle.setAttribute('fill', 'url(#blueGlassBead)');
+        }
+
+        const glint = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        glint.setAttribute('cx', pt.x - radius * 0.32);
+        glint.setAttribute('cy', pt.y - radius * 0.32);
+        glint.setAttribute('r', radius * 0.28);
+        glint.setAttribute('fill', '#ffffff');
+        glint.setAttribute('opacity', distFromCenter < 12 ? '0.88' : '0.5');
+
+        g.appendChild(circle);
+        g.appendChild(glint);
+        beadsContainer.appendChild(g);
+      }
+    }
+
+    function triggerPlusOneEffect() {
+      const wrapper = document.querySelector('.tasbih-strand-wrapper');
+      const bubble = document.createElement('div');
+      bubble.className = 'float-bubble';
+      bubble.textContent = '+1';
+      bubble.style.left = '56%';
+      bubble.style.top = '44%';
+      wrapper.appendChild(bubble);
+      setTimeout(() => bubble.remove(), 750);
+    }
+
+    const countDisplay = document.getElementById('countDisplay');
+    const progressBar = document.getElementById('progressBar');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const playIcon = document.getElementById('playIcon');
+    const pauseIcon = document.getElementById('pauseIcon');
+    const tasbihTouchZone = document.getElementById('tasbihTouchZone');
+    const resetBtn = document.getElementById('resetBtn');
+    const completionModal = document.getElementById('completionModal');
+    const restartCycleBtn = document.getElementById('restartCycleBtn');
+
+    let autoTimer = null;
+
+    function updateCounterDisplay() {
+      countDisplay.textContent = state.count;
+      const progressFraction = state.count / TOTAL_TARGET;
+      const offset = CIRCLE_CIRCUMFERENCE - (progressFraction * CIRCLE_CIRCUMFERENCE);
+      progressBar.style.strokeDashoffset = offset;
+      saveState();
+    }
+
+    function incrementCount() {
+      initAudio();
+      triggerHaptic();
+      speakMaleDhikr();
+      playBackgroundChime();
+      triggerPlusOneEffect();
+
+      state.count++;
+      targetBeadOffset = state.count;
+
+      if (state.count >= TOTAL_TARGET) {
+        state.count = TOTAL_TARGET;
+        updateCounterDisplay();
+        stopAutoPlay();
+        setTimeout(showCompletion, 400);
+      } else {
+        updateCounterDisplay();
+      }
+    }
+
+    function showCompletion() {
+      playCompletionSound();
+      completionModal.classList.add('active');
+    }
+
+    function resetCounter() {
+      stopAutoPlay();
+      state.count = 0;
+      targetBeadOffset = 0;
+      updateCounterDisplay();
+    }
+
+    function toggleAutoPlay() {
+      initAudio();
+      if (state.isAutoPlaying) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      if (state.count >= TOTAL_TARGET) {
+        state.count = 0;
+        targetBeadOffset = 0;
+        updateCounterDisplay();
+      }
+      state.isAutoPlaying = true;
+      playIcon.style.display = 'none';
+      pauseIcon.style.display = 'block';
+
+      incrementCount();
+
+      clearInterval(autoTimer);
+      autoTimer = setInterval(() => {
+        if (state.count < TOTAL_TARGET) {
+          incrementCount();
+        } else {
+          stopAutoPlay();
+        }
+      }, state.autoSpeed);
+    }
+
+    function stopAutoPlay() {
+      state.isAutoPlaying = false;
+      playIcon.style.display = 'block';
+      pauseIcon.style.display = 'none';
+      clearInterval(autoTimer);
+    }
+
+    const dhikrMenuBtn = document.getElementById('dhikrMenuBtn');
+    const dhikrModal = document.getElementById('dhikrModal');
+    const closeDhikrModal = document.getElementById('closeDhikrModal');
+    const dhikrListContainer = document.getElementById('dhikrListContainer');
+
+    const arabicText = document.getElementById('arabicText');
+    const transliterationText = document.getElementById('transliterationText');
+    const translationText = document.getElementById('translationText');
+
+    function applyDhikr(index) {
+      state.dhikrIndex = index;
+      const current = DHIKR_ITEMS[index];
+      
+      arabicText.style.opacity = 0;
+      transliterationText.style.opacity = 0;
+      translationText.style.opacity = 0;
+      arabicText.style.transform = 'translateY(-10px)';
+
+      setTimeout(() => {
+        arabicText.textContent = current.arabic;
+        transliterationText.textContent = current.transliteration;
+        translationText.textContent = current.translation;
+
+        arabicText.style.opacity = 1;
+        transliterationText.style.opacity = 1;
+        translationText.style.opacity = 1;
+        arabicText.style.transform = 'translateY(0)';
+      }, 200);
+
+      renderDhikrOptions();
+      saveState();
+
+      if (state.audioEnabled) {
+        speakMaleDhikr();
+      }
+    }
+
+    function renderDhikrOptions() {
+      dhikrListContainer.innerHTML = '';
+      DHIKR_ITEMS.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = `dhikr-opt-item ${idx === state.dhikrIndex ? 'selected' : ''}`;
+        div.innerHTML = `
+          <div>
+            <div style="font-weight:600; font-size:15px; color:#fff;">${item.transliteration}</div>
+            <div style="font-size:12px; color:#9fa4c0;">${item.translation}</div>
+          </div>
+          <div class="ar">${item.arabic}</div>
+        `;
+        div.addEventListener('click', () => {
+          applyDhikr(idx);
+          dhikrModal.classList.remove('active');
+        });
+        dhikrListContainer.appendChild(div);
+      });
+    }
+
+    const soundToggleBtn = document.getElementById('soundToggleBtn');
+    const soundOnIcon = document.getElementById('soundOnIcon');
+    const soundOffIcon = document.getElementById('soundOffIcon');
+
+    function updateSoundIcons() {
+      if (state.audioEnabled) {
+        soundOnIcon.style.display = 'block';
+        soundOffIcon.style.display = 'none';
+        soundToggleBtn.classList.remove('muted');
+      } else {
+        soundOnIcon.style.display = 'none';
+        soundOffIcon.style.display = 'block';
+        soundToggleBtn.classList.add('muted');
+        if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+      }
+    }
+
+    soundToggleBtn.addEventListener('click', () => {
+      initAudio();
+      state.audioEnabled = !state.audioEnabled;
+      updateSoundIcons();
+      saveState();
+      if (state.audioEnabled) {
+        speakMaleDhikr();
+      }
+    });
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.autoSpeed = parseInt(btn.dataset.speed, 10);
+        saveState();
+        if (state.isAutoPlaying) {
+          startAutoPlay();
+        }
+      });
+    });
+
+    playPauseBtn.addEventListener('click', toggleAutoPlay);
+    resetBtn.addEventListener('click', resetCounter);
+    tasbihTouchZone.addEventListener('click', incrementCount);
+
+    dhikrMenuBtn.addEventListener('click', () => {
+      renderDhikrOptions();
+      document.querySelectorAll('.speed-btn').forEach(b => {
+        b.classList.toggle('active', parseInt(b.dataset.speed, 10) === state.autoSpeed);
+      });
+      dhikrModal.classList.add('active');
+    });
+
+    closeDhikrModal.addEventListener('click', () => {
+      dhikrModal.classList.remove('active');
+    });
+
+    restartCycleBtn.addEventListener('click', () => {
+      completionModal.classList.remove('active');
+      resetCounter();
+    });
+
+    window.addEventListener('click', (e) => {
+      if (e.target === dhikrModal) dhikrModal.classList.remove('active');
+      if (e.target === completionModal) completionModal.classList.remove('active');
+    });
+
+    function initApp() {
+      resizeCanvas();
+      drawCelestialScene();
+      applyDhikr(state.dhikrIndex);
+      updateCounterDisplay();
+      updateSoundIcons();
+      targetBeadOffset = state.count;
+      currentBeadOffset = state.count;
+      renderMovingBeads();
+      animateBeadsMotion();
+      selectBestMaleVoice();
+    }
+
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
