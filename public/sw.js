@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tasbih-pwa-v1';
+const CACHE_NAME = 'tasbih-pwa-v2';
 const PRE_CACHE = [
   '/',
   '/index.html',
@@ -25,6 +25,19 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Network-first for page navigations so new deploys are picked up immediately
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        const responseToCache = networkResponse.clone();
+        caches.open(CACHE_NAME).then((cache) => {
+          cache.put('/index.html', responseToCache);
+        });
+        return networkResponse;
+      }).catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) return cachedResponse;
